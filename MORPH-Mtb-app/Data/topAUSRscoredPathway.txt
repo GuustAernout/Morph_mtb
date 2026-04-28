@@ -1,0 +1,48 @@
+
+
+1.
+Pathway2
+1		Rv2459		1.667578		MFS-type transporter
+2		Rv2457c		1.626419		ATP-dependent CLP protease ATP-binding subunit ClpX
+3		Rv0017c		1.584959		cell division protein RodA
+4		Rv0175		1.567205		Mce associated membrane protein
+5		Rv2374c		1.551404		heat-inducible transcription repressor HrcA
+6		Rv2409c		1.527463		hypothetical protein
+
+
+Hypothetical proteins: 
+6		Rv2409c		1.527463		hypothetical protein
+---------------------------------------------------------------------------------------------------------------
+
+
+2.
+Pathway5
+1		Rv2091c		2.552570		membrane protein
+2		Rv0144		2.465906		transcriptional regulator
+3		Rv2237A		2.255278		hypothetical protein
+4		Rv0047c		2.244857		hypothetical protein
+5		Rv2069		2.136015		ECF RNA polymerase sigma factor SigC
+6		Rv2300c		2.130753		metallo-hydrolase
+
+
+Hypothetical proteins: 
+3		Rv2237A		2.255278		hypothetical protein
+4		Rv0047c		2.244857		hypothetical protein
+---------------------------------------------------------------------------------------------------------------
+
+
+3.
+pathway4
+1		Rv0103c		1.209367		cation-transporter P-type ATPase B
+2		Rv0393		1.208987		hypothetical protein
+3		Rv0380c		1.208955		RNA methyltransferase
+4		Rv0332		1.208126		hypothetical protein
+5		Rv0381c		1.205160		hypothetical protein
+6		Rv0748		1.190934		antitoxin VapB31
+
+
+Hypothetical proteins: 
+2		Rv0393		1.208987		hypothetical protein
+4		Rv0332		1.208126		hypothetical protein
+5		Rv0381c		1.20516		hypothetical protein
+---------------------------------------------------------------------------------------------------------------

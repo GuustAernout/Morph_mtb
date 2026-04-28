@@ -1,0 +1,10 @@
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+button#startbutton.btn.btn-default.action-button.shiny-bound-input {
+  background:#2fa4e7;
+  font-weight: bold;
+  color: white;
+}

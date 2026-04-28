@@ -1,0 +1,12 @@
+methylation_dataset.txt	kmeansmethylation.txt
+methylation_dataset.txt	sommethylation.txt
+drug_cholesterol_toxin.txt	kmeansdrug.txt
+drug_cholesterol_toxin.txt	somdrug.txt
+ESX_WT_mutant.txt	kmeansESX.txt
+ESX_WT_mutant.txt	somESX.txt
+MTBc_all_lineages.txt	kmeansMTBc_lineages.txt
+MTBc_all_lineages.txt	somMTBc_lineages.txt
+primary_drug.txt	kmeansprimary.txt
+primary_drug.txt	somprimary.txt
+timecourse_nitricacid.txt	kmeanstimecourse.txt
+timecourse_nitricacid.txt	somtimecourse.txt
