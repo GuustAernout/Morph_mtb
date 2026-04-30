@@ -66,57 +66,37 @@ geneids <- data
 kmeans_data <-  kmeans(log_data, 3, nstart=50,iter.max = 40)
 
 kmeans_file_data <- data.frame(geneids,kmeans_data$cluster)
-output_file_path <- "kmeansProtonPump.txt"
+output_file_path <- "kmeansProtonPump.txt" # adjust file name to suit your dataset
+
 write.table(kmeans_file_data, file = output_file_path, sep = "\t", row.names = FALSE,col.names = FALSE, quote = FALSE)
-clusterK <- function(wssk, elbowK){
-  kmax <- 10
-  plot(2:kmax, wssk, type="b", pch =10, frame = FALSE, 
-       xlab="Number of clusters",
-       ylab="Total Within sum of square",
-       main="K-means",
-       cex=2, cex.main=1.5, cex.lab=1.5, cex.axis=2)
-  abline(v = elbowK, col = "red", lwd = 2)
-}
 
-weightSOM <- function(data){
-  # Elbow Method
-  ## SOM
-  n_genes <- nrow(data)
-  xdim <- floor(n_genes / 10)  # floor ensures nodes <= genes so som() can initialise
-  som_grid <- somgrid(xdim = xdim, ydim = 10, topo = "hexagonal")
-  gene_som <- som(data, grid = som_grid, rlen = 100, alpha = c(0.05, 0.01), keep.data = TRUE)
-  weight <- getCodes(gene_som)
-  # Return both the weight matrix (for kmeans on nodes) and unit.classif
-  # (which SOM node each gene belongs to, needed to map node-clusters back to genes)
-  list(weights = weight, unit_classif = gene_som$unit.classif)
-}
-wsssom <- function(data){
-  n_genes <- nrow(data)
-  xdim <- floor(n_genes / 10)  # floor ensures nodes <= genes
-  som_grid <- somgrid(xdim = xdim, ydim = 10, topo = "hexagonal")
-  gene_som <- som(data, grid = som_grid, rlen = 100, alpha = c(0.05, 0.01), keep.data = TRUE)
-  weight<- getCodes(gene_som)
-  kmax <- 10
-  wsss <- sapply(2:kmax, function(k){
-    kmeans(weight, k, nstart=50,iter.max = 40)$tot.withinss})
-  wsss
-}
-clusterS <- function(wsss, elbowS){
-  kmax <- 10
-  plot(2:kmax, wsss, type="b", pch =10, frame = FALSE, 
-       xlab="Number of clusters",
-       ylab="Total Within sum of square",
-       main="SOM",
-       cex=2, cex.main=1.5, cex.lab=1.5, cex.axis=2)
-  abline(v = elbowS, col = "red", lwd = 2) 
-}
 
-## Define clusters 
-## k-means
-kmc <- function(data, elbowK){
-  kmeans(data, centers = elbowK, iter.max=40,nstart=50)
-}
-## SOM
-SOMc <- function(weight, elbowS){
-  kmeans(weight, centers = elbowS, iter.max=40,nstart=50)
-} 
+
+
+## SOM clustering
+# Use log_data (filtered + log-transformed), same as the app
+n_genes <- nrow(log_data)
+xdim <- floor(n_genes / 10)  # floor ensures SOM nodes <= genes so som() can initialise
+som_grid <- somgrid(xdim = xdim, ydim = 10, topo = "hexagonal")
+gene_som <- som(log_data, grid = som_grid, rlen = 100, alpha = c(0.05, 0.01), keep.data = TRUE)
+
+# Weight matrix: one row per SOM node
+weight <- getCodes(gene_som)
+
+# unit.classif: one entry per gene, recording which SOM node it was assigned to
+unit_classif <- gene_som$unit.classif
+
+# Choose number of SOM clusters (adjust elbowS to match your dataset)
+elbowS <- 3
+
+# Run kmeans on SOM node weights to get node-level clusters
+somc <- kmeans(weight, centers = elbowS, iter.max = 40, nstart = 50)
+
+# Map each gene to its node's cluster via unit.classif
+gene_cluster_assignments <- somc$cluster[unit_classif]
+
+# Build output: gene ID + cluster number, one row per gene
+som_file_data <- data.frame(geneids, gene_cluster_assignments)
+output_file_path_som <- "somProtonPump.txt"  # adjust file name to suit your dataset
+
+write.table(som_file_data, file = output_file_path_som, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
