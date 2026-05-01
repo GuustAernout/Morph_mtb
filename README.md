@@ -1,5 +1,5 @@
 # Morph_mtb
-THis repo ontains the development of the morph app which is used to predict protein family members in mycobacterium tuberculosis.
+This repo contains the development of the morph app which is used to predict protein family members in mycobacterium tuberculosis.
 This shiny app is based on the morph algorithm. It was originally deigned for udse in plant. This app uses this algorithm to predict previously unknown protein pathway members in *Mycobacterium tuberculosis*. 
 
 
