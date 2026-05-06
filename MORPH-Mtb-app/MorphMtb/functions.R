@@ -146,9 +146,11 @@ getGeneExpression <- function(InputGE)
 prepareMorphObjectFromFiles <- function(InputGOI = NULL, ...) {
   #Config = read.delim(InputConfig, sep = "\t", header=FALSE) #Reads the configs.txt file.
   Config = data.frame(V1=c("methylation_dataset.txt","methylation_dataset.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt",
-                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt"),
+                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt",
+                           "Protonpump.txt","Protonpump.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","MTB_alf.txt","MTB_alf.txt"),
                       V2=c("kmeansmethylation.txt","sommethylation.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt"))
+                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt",
+                           "kmeansProtonPump.txt","somProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","kmeansMTB_alf.txt","somMTB_alf.txt"))
   List_GE = as.character(Config[,1]) #Reads the first column (containing paths to gene-expression data files)
   List_C = as.character(Config[,2]) #Reads the second column (containing paths to clustering solution files)
   G = c() #Initialize the vector to contain names of pathway-genes.
@@ -196,9 +198,11 @@ prepareMorphObjectFromFiles <- function(InputGOI = NULL, ...) {
 prepareMorphObjectFromFiles2 <- function(InputGOI = NULL, ...) {
   #Config = read.delim(InputConfig, sep = "\t", header=FALSE) #Reads the configs.txt file.
   Config = data.frame(V1=c("methylation_dataset.txt","methylation_dataset.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt",
-                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt", "ExpressionData.txt", "ExpressionData.txt"),
+                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt", "ExpressionData.txt", "ExpressionData.txt",
+                           "Protonpump.txt","Protonpump.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","MTB_alf.txt","MTB_alf.txt"),
                       V2=c("kmeansmethylation.txt","sommethylation.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt", "kmeansexpdata.txt", "somexpdata.txt"))
+                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt", "kmeansexpdata.txt", "somexpdata.txt",
+                           "kmeansProtonPump.txt","somProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt"))
   List_GE = as.character(Config[,1]) #Reads the first column (containing paths to gene-expression data files)
   List_C = as.character(Config[,2]) #Reads the second column (containing paths to clustering solution files)
   G = c() #Initialize the vector to contain names of pathway-genes.

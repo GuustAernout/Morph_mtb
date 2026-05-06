@@ -499,12 +499,14 @@ AverageofRandom <- function(scorerandom) {
     
     ### Solutions for each dataset for a specific pathway
     output$ConfigTable <- renderTable({
-      dataset <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt"), each =2)
+      dataset <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt"), each =2)
       cluster <- c("kmeansmethylation.txt","sommethylation.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                   "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt")
+                   "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt",
+                   "somtimecourse.txt","kmeansProtonPump.txt","somProtonPump.txt","kmeansMTB_small_RNA.txt","somMTB_small_RNA.txt","kmeansMTB_alf.txt","somMTB_alf.txt"
+                   ,"kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt")
       ausr <- reactive({
-        # get scores of all 12 configurations
-        sapply(1:12, function(i){
+        # get scores of all 18 configurations
+        sapply(1:18, function(i){
           return(scores()[[i]]$AUSR)})
         })
       # Ensure the reactive ausr() is called to get the actual values
@@ -919,11 +921,12 @@ AverageofRandom <- function(scorerandom) {
       
       ### Solutions for each dataset for a specific pathway
       output$ConfigTable2 <- renderTable({
-        dataset2 <- rep(c("clark.txt","drug.txt","ESX.txt","inaki.txt","primary.txt","timecourse.txt","ExpressionData.txt"), each =2)
+        dataset2 <- rep(c("clark.txt","drug.txt","ESX.txt","inaki.txt","primary.txt","timecourse.txt","ExpressionData.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt"), each =2)
         cluster2 <- c("kmeansclark.txt","somclark.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                     "kmeansinaki.txt","sominaki.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt", "kmeansexpdata.txt", "somexpdata.txt")
+                     "kmeansinaki.txt","sominaki.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt", "kmeansexpdata.txt", "somexpdata.txt",
+                     "kmeansProtonPump.txt","somProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","kmeansMTB_alf.txt","somMTB_alf.txt",)
         ausr2 <- reactive({
-          sapply(1:14, function(i){
+          sapply(1:20, function(i){
             return(scores2()[[i]]$AUSR)})
         })
         # Ensure the reactive ausr() is called to get the actual values
