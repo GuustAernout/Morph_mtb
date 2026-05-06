@@ -10,13 +10,16 @@ In this repository, two folders where attached named Data and MorphMtb.
 A separate R script called allMtbPathways.R is also present.
 
 ## Data folder
-In the data folder all pre-processed and app implemented data files can be found. The 6 included datasets are:
+In the data folder all pre-processed and app implemented data files can be found. The 9 included datasets are:
 - ESX.txt
 - clark.txt
 - drug.txt
 - inaki.txt
 - primary.txt
 - timecourse.txt
+- MTB_alf.txt
+- Protonpump.txt
+- Rifampin_tolerance.txt
 The results from the K-means and SOM clustering are also found in this folder.
 
 ## MorphMtb folder
