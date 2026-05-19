@@ -88,7 +88,41 @@ kmc <- function(data, elbowK){
 ## SOM
 SOMc <- function(weight, elbowS){
   kmeans(weight, centers = elbowS, iter.max=40,nstart=50)
-} 
+}
+## Hierarchical clustering
+# Run hclust once (Ward.D2) and return the object — reused by both the elbow
+# plot and the final cluster assignment so dist() is only computed once
+weightHclust <- function(data){
+  d <- dist(data)
+  hclust(d, method = "ward.D2")
+}
+# Compute total within-cluster SS for k = 2..10 (elbow plot)
+wsshclust <- function(hc, logdata){
+  kmax <- 10
+  wssh <- sapply(2:kmax, function(k){
+    clusters <- cutree(hc, k = k)
+    sum(sapply(unique(clusters), function(cl){
+      members <- logdata[clusters == cl, , drop = FALSE]
+      if (nrow(members) <= 1) return(0)
+      centroid <- colMeans(members)
+      sum(apply(members, 1, function(x) sum((x - centroid)^2)))
+    }))
+  })
+  wssh
+}
+clusterH <- function(wssh, elbowH){
+  kmax <- 10
+  plot(2:kmax, wssh, type="b", pch=10, frame=FALSE,
+       xlab="Number of clusters",
+       ylab="Total Within sum of square",
+       main="Hierarchical (Ward.D2)",
+       cex=2, cex.main=1.5, cex.lab=1.5, cex.axis=2)
+  abline(v = elbowH, col = "red", lwd = 2)
+}
+# Cut dendrogram at chosen k
+Hclustc <- function(hclust_obj, elbowH){
+  cutree(hclust_obj, k = elbowH)
+}
 
 ##########################################################################################################
 ## Data Preparation for MORPH ##
@@ -111,6 +145,13 @@ somclustersss <- function(gene_ids, somc, unit_classif){
   cluster_assignments <- somc$cluster[unit_classif]
   gene_clusters <- data.frame(genes = gene_names, cluster = cluster_assignments)
   return(gene_clusters)
+}
+
+## Hierarchical clusters
+hclustclusters <- function(gene_ids, hclust_result){
+  # hclust_result is a named integer vector (gene -> cluster number) from cutree()
+  cluster_assignments <- hclust_result[gene_ids]
+  data.frame(genes = gene_ids, cluster = cluster_assignments)
 }
 
 
@@ -145,12 +186,14 @@ getGeneExpression <- function(InputGE)
 ### [2.1] prepare Morph Object From Files {Input;Configuration file (data and cluster solution), Output:MORPH object}
 prepareMorphObjectFromFiles <- function(InputGOI = NULL, ...) {
   #Config = read.delim(InputConfig, sep = "\t", header=FALSE) #Reads the configs.txt file.
-  Config = data.frame(V1=c("methylation_dataset.txt","methylation_dataset.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt",
-                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt",
-                           "Protonpump.txt","Protonpump.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","MTB_alf.txt","MTB_alf.txt"),
-                      V2=c("kmeansmethylation.txt","sommethylation.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt",
-                           "kmeansProtonPump.txt","somProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","kmeansMTB_alf.txt","somMTB_alf.txt"))
+  Config = data.frame(V1=c("methylation_dataset.txt","methylation_dataset.txt","methylation_dataset.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt",
+                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt",
+                           "Protonpump.txt","Protonpump.txt","Protonpump.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","MTB_alf.txt","MTB_alf.txt","MTB_alf.txt","bedaqulin.txt","bedaqulin.txt","bedaqulin.txt"),
+                      
+                      V2=c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt","kmeansdrug.txt","somdrug.txt","warddrug.txt","kmeansESX.txt","somESX.txt","wardESX.txt",
+                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","wardprimary.txt","kmeanstimecourse.txt","somtimecourse.txt","wardtimecourse.txt",
+                           "kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt","kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt",
+                           "kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt"))
   List_GE = as.character(Config[,1]) #Reads the first column (containing paths to gene-expression data files)
   List_C = as.character(Config[,2]) #Reads the second column (containing paths to clustering solution files)
   G = c() #Initialize the vector to contain names of pathway-genes.
@@ -197,12 +240,14 @@ prepareMorphObjectFromFiles <- function(InputGOI = NULL, ...) {
 
 prepareMorphObjectFromFiles2 <- function(InputGOI = NULL, ...) {
   #Config = read.delim(InputConfig, sep = "\t", header=FALSE) #Reads the configs.txt file.
-  Config = data.frame(V1=c("methylation_dataset.txt","methylation_dataset.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt",
-                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt", "ExpressionData.txt", "ExpressionData.txt",
-                           "Protonpump.txt","Protonpump.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","MTB_alf.txt","MTB_alf.txt"),
-                      V2=c("kmeansmethylation.txt","sommethylation.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt", "kmeansexpdata.txt", "somexpdata.txt",
-                           "kmeansProtonPump.txt","somProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt"))
+  Config = data.frame(V1=c("methylation_dataset.txt","methylation_dataset.txt","methylation_dataset.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt","ESX_WT_mutant.txt",
+                           "MTBc_all_lineages.txt","MTBc_all_lineages.txt","MTBc_all_lineages.txt","primary_drug.txt","primary_drug.txt","primary_drug.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt","timecourse_nitricacid.txt",
+                           "ExpressionData.txt", "ExpressionData.txt", "ExpressionData.txt","Protonpump.txt","Protonpump.txt","Protonpump.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","Rifampin_tolerance.txt","MTB_alf.txt","MTB_alf.txt","MTB_alf.txt",
+                           "bedaqulin.txt","bedaqulin.txt","bedaqulin.txt"),
+                      V2=c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt","kmeansdrug.txt","somdrug.txt","warddrug.txt","kmeansESX.txt","somESX.txt","wardESX.txt",
+                           "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","wardprimary.txt","kmeanstimecourse.txt",
+                           "somtimecourse.txt","wardtimecourse.txt","kmeansexpdata.txt", "somexpdata.txt", "wardexpdata.txt","kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt",
+                           "kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt","kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt"))
   List_GE = as.character(Config[,1]) #Reads the first column (containing paths to gene-expression data files)
   List_C = as.character(Config[,2]) #Reads the second column (containing paths to clustering solution files)
   G = c() #Initialize the vector to contain names of pathway-genes.

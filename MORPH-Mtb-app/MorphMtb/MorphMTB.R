@@ -291,6 +291,8 @@ AverageofRandom <- function(scorerandom) {
                       min = 2, max = 10, value = 3),
           sliderInput("elbowsom", "Elbow SOM:",
                       min = 2, max = 10, value = 3),
+          sliderInput("elbowhclust", "Elbow Hierarchical:",
+                      min = 2, max = 10, value = 3),
           # Draw horizontal line
           tags$hr(),
           helpText("Use at least 10 genes that you consider as a biological pathway."),
@@ -499,14 +501,14 @@ AverageofRandom <- function(scorerandom) {
     
     ### Solutions for each dataset for a specific pathway
     output$ConfigTable <- renderTable({
-      dataset <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt"), each =2)
-      cluster <- c("kmeansmethylation.txt","sommethylation.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                   "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt",
-                   "somtimecourse.txt","kmeansProtonPump.txt","somProtonPump.txt","kmeansMTB_small_RNA.txt","somMTB_small_RNA.txt","kmeansMTB_alf.txt","somMTB_alf.txt"
-                   ,"kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt")
+      dataset <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt","bedaqulin.txt"), each =3)
+      cluster <- c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt","kmeansdrug.txt","somdrug.txt","warddrug.txt","kmeansESX.txt","somESX.txt","wardESX.txt",
+                   "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","wardprimary.txt","kmeanstimecourse.txt",
+                   "somtimecourse.txt","wardtimecourse.txt","kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt",
+                   "kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt","kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt")
       ausr <- reactive({
-        # get scores of all 18 configurations
-        sapply(1:18, function(i){
+        # get scores of all 27 configurations
+        sapply(1:30, function(i){
           return(scores()[[i]]$AUSR)})
         })
       # Ensure the reactive ausr() is called to get the actual values
@@ -696,6 +698,20 @@ AverageofRandom <- function(scorerandom) {
       clusterS(wsss(), input$elbowsom)
     })
     
+    # Cluster expression data with Hierarchical clustering
+    # Compute hclust object once so dist() is not repeated for wssh and final clusters
+    hclustobj <- reactive({
+      weightHclust(datalog())
+    })
+    # WSS for elbow plot (derived from hclust object)
+    wssh <- reactive({
+      wsshclust(hclustobj(), datalog())
+    })
+    # Give plot Hierarchical
+    output$hclustplot <- renderPlot({
+      clusterH(wssh(), input$elbowhclust)
+    })
+    
     # Define clusters
     # Clusters K-means
     kmclusters <- reactive({
@@ -704,6 +720,10 @@ AverageofRandom <- function(scorerandom) {
     # Clusters SOM
     somclusters <- reactive({
       SOMc(weightsom()$weights, input$elbowsom)
+    })
+    # Clusters Hierarchical
+    hclustclusters_result <- reactive({
+      Hclustc(hclustobj(), input$elbowhclust)
     })
     
 
@@ -729,6 +749,11 @@ AverageofRandom <- function(scorerandom) {
     dataexpSOMDownload <- reactive({
       data3 <- somclustersss(geneIds(), somclusters(), weightsom()$unit_classif)
       return(data3)
+    })
+    # Getting Hierarchical clusters per gene
+    dataexpHclustDownload <- reactive({
+      data4 <- hclustclusters(geneIds(), hclustclusters_result())
+      return(data4)
     })
     
     # Download processed expression data file automatically after uploading file
@@ -777,6 +802,23 @@ AverageofRandom <- function(scorerandom) {
       # Notify the user
       output$file_status3 <- renderText({
         paste("SOM clustering file written to:", file_path3)})
+        
+      })
+      
+      ######################
+    # Download Hierarchical clustering of the expression data automatically after defining elbow
+    observeEvent(input$elbowhclust, {
+      req(input$elbowhclust)
+      
+      # Define file path
+      file_path4 <- file.path(getwd(), "hclustexpdata.txt")
+      
+      # Write the file
+      write.table(dataexpHclustDownload(), file_path4, sep= "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+      
+      # Notify the user
+      output$file_status4 <- renderText({
+        paste("Hierarchical clustering file written to:", file_path4)})
         
       })
     })
@@ -921,12 +963,13 @@ AverageofRandom <- function(scorerandom) {
       
       ### Solutions for each dataset for a specific pathway
       output$ConfigTable2 <- renderTable({
-        dataset2 <- rep(c("clark.txt","drug.txt","ESX.txt","inaki.txt","primary.txt","timecourse.txt","ExpressionData.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt"), each =2)
-        cluster2 <- c("kmeansclark.txt","somclark.txt","kmeansdrug.txt","somdrug.txt","kmeansESX.txt","somESX.txt",
-                     "kmeansinaki.txt","sominaki.txt","kmeansprimary.txt","somprimary.txt","kmeanstimecourse.txt","somtimecourse.txt", "kmeansexpdata.txt", "somexpdata.txt",
-                     "kmeansProtonPump.txt","somProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","kmeansMTB_alf.txt","somMTB_alf.txt",)
+        dataset2 <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt","ExpressionData.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt","bedaqulin.txt"), each =3)
+        cluster2 <- c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt","kmeansdrug.txt","somdrug.txt","warddrug.txt","kmeansESX.txt","somESX.txt","wardESX.txt",
+                     "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","wardprimary.txt","kmeanstimecourse.txt","somtimecourse.txt","wardtimecourse.txt", 
+                     "kmeansexpdata.txt", "somexpdata.txt","wardexpdata.txt","kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt"
+                     ,"kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt","kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt")
         ausr2 <- reactive({
-          sapply(1:20, function(i){
+          sapply(1:33, function(i){
             return(scores2()[[i]]$AUSR)})
         })
         # Ensure the reactive ausr() is called to get the actual values
@@ -1023,7 +1066,7 @@ AverageofRandom <- function(scorerandom) {
       tabsetPanel(
         tabPanel("Expression data", textOutput("file_status"), tableOutput("expressiondata")),
         tabPanel("Filtered expression data", tags$h4("Percentage of genes kept after filtering: "), textOutput("PercentageAfterFiltering")),
-        tabPanel("Clustering", textOutput("file_status2"), textOutput("file_status3"), tags$h4("Elbow plots:"), plotOutput("kmeansplot"), plotOutput("SOMplot")), 
+        tabPanel("Clustering", textOutput("file_status2"), textOutput("file_status3"), textOutput("file_status4"), tags$h4("Elbow plots:"), plotOutput("kmeansplot"), plotOutput("SOMplot"), plotOutput("hclustplot")), 
         tabPanel("Input pathway", tableOutput("pathway2"), tableOutput("contents2")),
         tabPanel("Result random pathway", tags$h4("Average AUSR score:"), textOutput("averageRandomPathways2"), br(), tags$h4("Scores random pathways:"), br(), tableOutput("scoresAUSR2")),
         tabPanel("Result input pathway", tags$h4("AUSR:"), textOutput("AUSRBestConfig2"), br(), 
