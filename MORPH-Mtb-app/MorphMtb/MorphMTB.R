@@ -202,7 +202,39 @@ AverageofRandom <- function(scorerandom) {
   # Define server logic
   server <-  function(input, output, session) {
     
-    # what happens on page1 (Home)
+    # Shared config labels — used by ConfigTable (single pathway) and batch ranked table.
+    # Must match the Config in prepareMorphObjectFromFiles in functions.R exactly.
+    config_datasets <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt",
+                             "MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt",
+                             "Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt","bedaqulin.txt"), each = 3)
+    config_clusters <- c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt",
+                         "kmeansdrug.txt","somdrug.txt","warddrug.txt",
+                         "kmeansESX.txt","somESX.txt","wardESX.txt",
+                         "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt",
+                         "kmeansprimary.txt","somprimary.txt","wardprimary.txt",
+                         "kmeanstimecourse.txt","somtimecourse.txt","wardtimecourse.txt",
+                         "kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt",
+                         "kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt",
+                         "kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt",
+                         "kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt")
+
+    # Shared config labels for page 3 (includes user ExpressionData configs).
+    # Must match the Config in prepareMorphObjectFromFiles2 in functions.R exactly.
+    config_datasets2 <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt",
+                              "MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt",
+                              "ExpressionData.txt",
+                              "Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt","bedaqulin.txt"), each = 3)
+    config_clusters2 <- c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt",
+                          "kmeansdrug.txt","somdrug.txt","warddrug.txt",
+                          "kmeansESX.txt","somESX.txt","wardESX.txt",
+                          "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt",
+                          "kmeansprimary.txt","somprimary.txt","wardprimary.txt",
+                          "kmeanstimecourse.txt","somtimecourse.txt","wardtimecourse.txt",
+                          "kmeansexpdata.txt","somexpdata.txt","hclustexpdata.txt",
+                          "kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt",
+                          "kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt",
+                          "kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt",
+                          "kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt")
     output$page1 <- renderUI({
       mainPanel(
         #import image of robot
@@ -266,7 +298,14 @@ AverageofRandom <- function(scorerandom) {
             actionButton("reset_inputs","New analysis",
                          onclick = "Shiny.setInputValue('startbutton', NULL);"),
             # Download link to download results
-            downloadLink("downloadPathway", "Download candidate genes")
+            downloadLink("downloadPathway", "Download candidate genes"),
+            # Batch multi-pathway section
+            tags$hr(),
+            tags$h5("Batch analysis"),
+            helpText("Upload a tab-separated file where each row is one pathway."),
+            fileInput("file_multi", "Upload multi-pathway file"),
+            actionButton("startbutton_multi", "Run batch"),
+            downloadLink("downloadMulti", "Download batch results")
         ),
         # What happens in main panel
         mainPanel(
@@ -313,7 +352,14 @@ AverageofRandom <- function(scorerandom) {
           actionButton("reset_inputs2","New analysis",
                        onclick = "Shiny.setInputValue('startbutton', NULL);"),
           # Download link to download results
-          downloadLink("downloadPathway2", "Download candidate genes")
+          downloadLink("downloadPathway2", "Download candidate genes"),
+          # Batch multi-pathway section
+          tags$hr(),
+          tags$h5("Batch analysis"),
+          helpText("Upload a tab-separated file where each row is one pathway."),
+          fileInput("file_multi2", "Upload multi-pathway file"),
+          actionButton("startbutton_multi2", "Run batch"),
+          downloadLink("downloadMulti2", "Download batch results")
         ),
       mainPanel(
         shinyjs::useShinyjs(),
@@ -501,14 +547,11 @@ AverageofRandom <- function(scorerandom) {
     
     ### Solutions for each dataset for a specific pathway
     output$ConfigTable <- renderTable({
-      dataset <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt","bedaqulin.txt"), each =3)
-      cluster <- c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt","kmeansdrug.txt","somdrug.txt","warddrug.txt","kmeansESX.txt","somESX.txt","wardESX.txt",
-                   "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","wardprimary.txt","kmeanstimecourse.txt",
-                   "somtimecourse.txt","wardtimecourse.txt","kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt",
-                   "kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt","kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt")
+      dataset <- config_datasets
+      cluster <- config_clusters
       ausr <- reactive({
-        # get scores of all 27 configurations
-        sapply(1:30, function(i){
+        # get scores of all configurations
+        sapply(1:length(config_datasets), function(i){
           return(scores()[[i]]$AUSR)})
         })
       # Ensure the reactive ausr() is called to get the actual values
@@ -597,22 +640,136 @@ AverageofRandom <- function(scorerandom) {
     output$averageRandomPathways <- renderText({
       AverageofRandom(ScoreRandom())
     })
-    
-      
 
-    
-    # What is shown in output different tabs page1 
+    }) # end observeEvent(input$startbutton)
+
+
+    # Storage for batch results
+    multiResultsData <- reactiveVal(NULL)
+
+    # Batch analysis: run MORPH on every pathway in the uploaded multi-pathway file
+    observeEvent(input$startbutton_multi, {
+      req(input$file_multi)
+
+      lines <- readLines(input$file_multi$datapath)
+      pathwayList <- lapply(lines, function(line) {
+        genes <- unlist(strsplit(line, "\t"))
+        genes <- trimws(genes)
+        genes <- genes[nchar(genes) > 0]
+        sub("^rv|^RV", "Rv", genes)
+      })
+      pathwayList <- pathwayList[sapply(pathwayList, length) > 0]
+      n_pathways  <- length(pathwayList)
+
+      results <- withProgress(message = "Running batch analysis...", value = 0, {
+        lapply(seq_along(pathwayList), function(i) {
+          incProgress(1 / n_pathways, detail = paste("Pathway", i, "of", n_pathways))
+          genes_rv <- GeneID(pathwayList[[i]])
+          tryCatch({
+            morph_in <- prepareMorphObjectFromFiles(genes_rv)
+            sc       <- MORPH(morph_in)
+            best     <- getMorphResultBestConfig(sc)
+            preds    <- getMorphPredictions(sc)
+            list(pathway = i, n_genes = length(genes_rv),
+                 scores = sc, best = best, predictions = preds, error = NULL)
+          }, error = function(e) {
+            list(pathway = i, n_genes = length(genes_rv),
+                 scores = NULL, best = NULL, predictions = NULL,
+                 error = conditionMessage(e))
+          })
+        })
+      })
+
+      # Register per-pathway render functions with dynamic output IDs
+      lapply(seq_along(results), function(i) {
+        res <- results[[i]]
+
+        output[[paste0("batchAUSR_", i)]] <- renderText({
+          if (!is.null(res$error)) paste("Error:", res$error)
+          else format(round(res$best$AUSR, 7))
+        })
+        output[[paste0("batchBest_", i)]] <- renderTable({
+          req(is.null(res$error))
+          data.frame(Dataset = res$best$GE, Cluster = res$best$C)
+        })
+        output[[paste0("batchConfig_", i)]] <- renderTable({
+          req(is.null(res$error))
+          ausr_scores <- sapply(seq_along(res$scores), function(j) res$scores[[j]]$AUSR)
+          df <- data.frame(Dataset = config_datasets, Cluster = config_clusters,
+                           Score = format(round(ausr_scores, 7)))
+          df[order(-ausr_scores), ]
+        }, striped = TRUE)
+        output[[paste0("batchPred_", i)]] <- renderTable({
+          req(is.null(res$error))
+          n   <- input$numbercandidates
+          ids    <- rownames(as.matrix(head(format(round(res$predictions, 6)), n)))
+          scores <- head(format(round(res$predictions, 6)), n)
+          data.frame(No = seq_len(n), ID = ids, Score = scores)
+        }, striped = TRUE)
+      })
+
+      multiResultsData(results)
+    })
+
+    # Build full per-pathway UI — only evaluates when multiResultsData() has content
+    output$batchResultsUI <- renderUI({
+      req(multiResultsData())
+      sections <- lapply(seq_along(multiResultsData()), function(i) {
+        res <- multiResultsData()[[i]]
+        tagList(
+          tags$hr(),
+          tags$h4(paste0("Pathway ", i, "  (", res$n_genes, " genes)")),
+          if (!is.null(res$error)) {
+            tags$p(style = "color:red;", paste("Error:", res$error))
+          } else tagList(
+            tags$h5("AUSR score:"),        textOutput(paste0("batchAUSR_",   i)),  br(),
+            tags$h5("Best configuration:"), tableOutput(paste0("batchBest_",  i)),  br(),
+            tags$h5("Ranked configurations:"), tableOutput(paste0("batchConfig_", i)), br(),
+            tags$h5("Top candidate genes:"),   tableOutput(paste0("batchPred_",   i))
+          )
+        )
+      })
+      do.call(tagList, sections)
+    })
+
+    # Download: one summary row per pathway
+    output$downloadMulti <- downloadHandler(
+      filename = function() "BatchResults.txt",
+      content  = function(file) {
+        req(multiResultsData())
+        df <- do.call(rbind, lapply(multiResultsData(), function(res) {
+          if (!is.null(res$error))
+            data.frame(Pathway=res$pathway, Genes=res$n_genes, AUSR=NA,
+                       Best_dataset=NA, Best_cluster=NA,
+                       Top_candidates=paste("Error:", res$error), stringsAsFactors=FALSE)
+          else {
+            ids <- rownames(as.matrix(head(format(round(res$predictions,6)), input$numbercandidates)))
+            data.frame(Pathway=res$pathway, Genes=res$n_genes,
+                       AUSR=round(res$best$AUSR,6),
+                       Best_dataset=res$best$GE, Best_cluster=res$best$C,
+                       Top_candidates=paste(ids, collapse=", "), stringsAsFactors=FALSE)
+          }
+        }))
+        write.table(df, file, sep="\t", row.names=FALSE, quote=FALSE)
+      }
+    )
+
+    # What is shown in output different tabs page1
+    # Defined OUTSIDE observeEvent(startbutton) so the Batch tab is always visible
     output$tb <- renderUI({
       tabsetPanel(
         tabPanel("Input pathway", tableOutput("pathway"), tableOutput("contents"), tags$h5("Go to next tab for results.")),
         tabPanel("Result random pathway", tags$h4("Average AUSR score:"), textOutput("averageRandomPathways"), br(), tags$h4("Scores random pathways:"), br(), tableOutput("scoresAUSR")),
-        tabPanel("Result input pathway", tags$h4("AUSR:"), textOutput("AUSRBestConfig"), br(), 
+        tabPanel("Result input pathway", tags$h4("AUSR:"), textOutput("AUSRBestConfig"), br(),
                  tags$h4("Best configuration:"), tableOutput("BestConfigs"), br(),
                  tags$h4("Ranked configurations:"), tableOutput("ConfigTable"), br(),
-                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions"), br(), tags$h5("Click the download link to download list candidate genes.")))
-        
+                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions"), br(), tags$h5("Click the download link to download list candidate genes.")),
+        tabPanel("Batch results",
+                 tags$h4("Batch analysis results:"),
+                 helpText("Run a batch analysis using the sidebar controls. One section per pathway."),
+                 uiOutput("batchResultsUI")))
     })
-    })
+
 
 #########################################################################################################  
 ### PAGE3 ###   
@@ -963,13 +1120,10 @@ AverageofRandom <- function(scorerandom) {
       
       ### Solutions for each dataset for a specific pathway
       output$ConfigTable2 <- renderTable({
-        dataset2 <- rep(c("methylation_dataset.txt","drug_cholesterol_toxin.txt","ESX_WT_mutant.txt","MTBc_all_lineages.txt","primary_drug.txt","timecourse_nitricacid.txt","ExpressionData.txt","Protonpump.txt","Rifampin_tolerance.txt","MTB_alf.txt","bedaqulin.txt"), each =3)
-        cluster2 <- c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt","kmeansdrug.txt","somdrug.txt","warddrug.txt","kmeansESX.txt","somESX.txt","wardESX.txt",
-                     "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","wardprimary.txt","kmeanstimecourse.txt","somtimecourse.txt","wardtimecourse.txt", 
-                     "kmeansexpdata.txt", "somexpdata.txt","wardexpdata.txt","kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt"
-                     ,"kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt","kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt")
+        dataset2 <- config_datasets2
+        cluster2 <- config_clusters2
         ausr2 <- reactive({
-          sapply(1:33, function(i){
+          sapply(1:length(config_datasets2), function(i){
             return(scores2()[[i]]$AUSR)})
         })
         # Ensure the reactive ausr() is called to get the actual values
@@ -1062,19 +1216,132 @@ AverageofRandom <- function(scorerandom) {
     
       
     # What is shown in output page2
+    # Storage for page 3 batch results
+    multiResultsData2 <- reactiveVal(NULL)
+
+    # Batch analysis for own dataset: run MORPH on every pathway in the uploaded file
+    observeEvent(input$startbutton_multi2, {
+      req(input$file_multi2)
+
+      lines <- readLines(input$file_multi2$datapath)
+      pathwayList <- lapply(lines, function(line) {
+        genes <- unlist(strsplit(line, "\t"))
+        genes <- trimws(genes)
+        genes <- genes[nchar(genes) > 0]
+        sub("^rv|^RV", "Rv", genes)
+      })
+      pathwayList <- pathwayList[sapply(pathwayList, length) > 0]
+      n_pathways  <- length(pathwayList)
+
+      results2 <- withProgress(message = "Running batch analysis (own dataset)...", value = 0, {
+        lapply(seq_along(pathwayList), function(i) {
+          incProgress(1 / n_pathways, detail = paste("Pathway", i, "of", n_pathways))
+          genes_rv <- GeneID(pathwayList[[i]])
+          tryCatch({
+            morph_in <- prepareMorphObjectFromFiles2(genes_rv)
+            sc       <- MORPH(morph_in)
+            best     <- getMorphResultBestConfig(sc)
+            preds    <- getMorphPredictions(sc)
+            list(pathway = i, n_genes = length(genes_rv),
+                 scores = sc, best = best, predictions = preds, error = NULL)
+          }, error = function(e) {
+            list(pathway = i, n_genes = length(genes_rv),
+                 scores = NULL, best = NULL, predictions = NULL,
+                 error = conditionMessage(e))
+          })
+        })
+      })
+
+      # Register per-pathway render functions
+      lapply(seq_along(results2), function(i) {
+        res <- results2[[i]]
+
+        output[[paste0("batchAUSR2_", i)]] <- renderText({
+          if (!is.null(res$error)) paste("Error:", res$error)
+          else format(round(res$best$AUSR, 7))
+        })
+        output[[paste0("batchBest2_", i)]] <- renderTable({
+          req(is.null(res$error))
+          data.frame(Dataset = res$best$GE, Cluster = res$best$C)
+        })
+        output[[paste0("batchConfig2_", i)]] <- renderTable({
+          req(is.null(res$error))
+          ausr_scores <- sapply(seq_along(res$scores), function(j) res$scores[[j]]$AUSR)
+          df <- data.frame(Dataset = config_datasets2, Cluster = config_clusters2,
+                           Score = format(round(ausr_scores, 7)))
+          df[order(-ausr_scores), ]
+        }, striped = TRUE)
+        output[[paste0("batchPred2_", i)]] <- renderTable({
+          req(is.null(res$error))
+          n      <- input$numbercandidates2
+          ids    <- rownames(as.matrix(head(format(round(res$predictions, 6)), n)))
+          scores <- head(format(round(res$predictions, 6)), n)
+          data.frame(No = seq_len(n), ID = ids, Score = scores)
+        }, striped = TRUE)
+      })
+
+      multiResultsData2(results2)
+    })
+
+    # Build full per-pathway UI for page 3
+    output$batchResultsUI2 <- renderUI({
+      req(multiResultsData2())
+      sections <- lapply(seq_along(multiResultsData2()), function(i) {
+        res <- multiResultsData2()[[i]]
+        tagList(
+          tags$hr(),
+          tags$h4(paste0("Pathway ", i, "  (", res$n_genes, " genes)")),
+          if (!is.null(res$error)) {
+            tags$p(style = "color:red;", paste("Error:", res$error))
+          } else tagList(
+            tags$h5("AUSR score:"),             textOutput(paste0("batchAUSR2_",   i)), br(),
+            tags$h5("Best configuration:"),     tableOutput(paste0("batchBest2_",  i)), br(),
+            tags$h5("Ranked configurations:"),  tableOutput(paste0("batchConfig2_", i)), br(),
+            tags$h5("Top candidate genes:"),    tableOutput(paste0("batchPred2_",   i))
+          )
+        )
+      })
+      do.call(tagList, sections)
+    })
+
+    # Download: one summary row per pathway
+    output$downloadMulti2 <- downloadHandler(
+      filename = function() "BatchResults_OwnData.txt",
+      content  = function(file) {
+        req(multiResultsData2())
+        df <- do.call(rbind, lapply(multiResultsData2(), function(res) {
+          if (!is.null(res$error))
+            data.frame(Pathway=res$pathway, Genes=res$n_genes, AUSR=NA,
+                       Best_dataset=NA, Best_cluster=NA,
+                       Top_candidates=paste("Error:", res$error), stringsAsFactors=FALSE)
+          else {
+            ids <- rownames(as.matrix(head(format(round(res$predictions,6)), input$numbercandidates2)))
+            data.frame(Pathway=res$pathway, Genes=res$n_genes,
+                       AUSR=round(res$best$AUSR,6),
+                       Best_dataset=res$best$GE, Best_cluster=res$best$C,
+                       Top_candidates=paste(ids, collapse=", "), stringsAsFactors=FALSE)
+          }
+        }))
+        write.table(df, file, sep="\t", row.names=FALSE, quote=FALSE)
+      }
+    )
+
     output$tb2 <- renderUI({
       tabsetPanel(
         tabPanel("Expression data", textOutput("file_status"), tableOutput("expressiondata")),
         tabPanel("Filtered expression data", tags$h4("Percentage of genes kept after filtering: "), textOutput("PercentageAfterFiltering")),
-        tabPanel("Clustering", textOutput("file_status2"), textOutput("file_status3"), textOutput("file_status4"), tags$h4("Elbow plots:"), plotOutput("kmeansplot"), plotOutput("SOMplot"), plotOutput("hclustplot")), 
+        tabPanel("Clustering", textOutput("file_status2"), textOutput("file_status3"), textOutput("file_status4"), tags$h4("Elbow plots:"), plotOutput("kmeansplot"), plotOutput("SOMplot"), plotOutput("hclustplot")),
         tabPanel("Input pathway", tableOutput("pathway2"), tableOutput("contents2")),
         tabPanel("Result random pathway", tags$h4("Average AUSR score:"), textOutput("averageRandomPathways2"), br(), tags$h4("Scores random pathways:"), br(), tableOutput("scoresAUSR2")),
-        tabPanel("Result input pathway", tags$h4("AUSR:"), textOutput("AUSRBestConfig2"), br(), 
+        tabPanel("Result input pathway", tags$h4("AUSR:"), textOutput("AUSRBestConfig2"), br(),
                  tags$h4("Best configuration:"), tableOutput("BestConfigs2"), br(),
                  tags$h4("Ranked configurations:"), tableOutput("ConfigTable2"), br(),
-                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions2"), br(), tags$h5("Click the download link to download list candidate genes."))
+                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions2"), br(), tags$h5("Click the download link to download list candidate genes.")),
+        tabPanel("Batch results",
+                 tags$h4("Batch analysis results (own dataset):"),
+                 helpText("Run a batch analysis using the sidebar controls. One section per pathway."),
+                 uiOutput("batchResultsUI2"))
         )
-
     })
 
     }
