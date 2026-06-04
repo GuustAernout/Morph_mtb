@@ -640,6 +640,41 @@ AverageofRandom <- function(scorerandom) {
     output$averageRandomPathways <- renderText({
       AverageofRandom(ScoreRandom())
     })
+    
+    # Boxplot: AUSR distribution of random pathways with input pathway overlaid as a point
+    output$AUSRboxplot <- renderPlot({
+      req(ScoreRandom(), BestConfig())
+      
+      # Extract numeric AUSR scores from random pathways
+      random_ausrs <- as.numeric(unlist(sapply(seq_along(ScoreRandom()), function(i) {
+        ScoreRandom()[[i]][[1]][["AUSR"]]
+      })))
+      input_ausr <- BestConfig()$AUSR
+      
+      # All on the same x category so the point sits on the boxplot
+      df_random <- data.frame(x = "AUSR scores", AUSR = random_ausrs)
+      df_input  <- data.frame(x = "AUSR scores", AUSR = input_ausr)
+      
+      ggplot() +
+        geom_boxplot(data = df_random,
+                     aes(x = x, y = AUSR),
+                     fill = "steelblue", alpha = 0.7, width = 0.35,
+                     outlier.colour = "steelblue4", outlier.size = 2) +
+        geom_point(data = df_input,
+                   aes(x = x, y = AUSR),
+                   colour = "#E84040", size = 5, shape = 18) +
+        labs(x = NULL, y = "AUSR score",
+             caption = paste0("Red diamond = input pathway (AUSR = ",
+                              format(round(input_ausr, 4)), ")",
+                              "  |  Blue box = random pathways (n = ", length(random_ausrs), ")")) +
+        theme_minimal(base_size = 14) +
+        theme(
+          axis.text        = element_text(size = 13),
+          axis.title       = element_text(size = 14),
+          panel.grid.major.x = element_blank(),
+          plot.caption     = element_text(size = 11, hjust = 0)
+        )
+    })
 
     }) # end observeEvent(input$startbutton)
 
@@ -763,7 +798,10 @@ AverageofRandom <- function(scorerandom) {
         tabPanel("Result input pathway", tags$h4("AUSR:"), textOutput("AUSRBestConfig"), br(),
                  tags$h4("Best configuration:"), tableOutput("BestConfigs"), br(),
                  tags$h4("Ranked configurations:"), tableOutput("ConfigTable"), br(),
-                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions"), br(), tags$h5("Click the download link to download list candidate genes.")),
+                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions"), br(), tags$h5("Click the download link to download list candidate genes."),
+                 tags$hr(),
+                 tags$h4("AUSR score distribution: input pathway vs random pathways"),
+                 plotOutput("AUSRboxplot")),
         tabPanel("Batch results",
                  tags$h4("Batch analysis results:"),
                  helpText("Run a batch analysis using the sidebar controls. One section per pathway."),
@@ -1210,6 +1248,39 @@ AverageofRandom <- function(scorerandom) {
       output$averageRandomPathways2 <- renderText({
         AverageofRandom(ScoreRandom2())
       })
+
+      # Boxplot: AUSR distribution of random pathways with input pathway overlaid as a point
+      output$AUSRboxplot2 <- renderPlot({
+        req(ScoreRandom2(), BestConfig2())
+
+        random_ausrs <- as.numeric(unlist(sapply(seq_along(ScoreRandom2()), function(i) {
+          ScoreRandom2()[[i]][[1]][["AUSR"]]
+        })))
+        input_ausr <- BestConfig2()$AUSR
+
+        df_random <- data.frame(x = "AUSR scores", AUSR = random_ausrs)
+        df_input  <- data.frame(x = "AUSR scores", AUSR = input_ausr)
+
+        ggplot() +
+          geom_boxplot(data = df_random,
+                       aes(x = x, y = AUSR),
+                       fill = "steelblue", alpha = 0.7, width = 0.35,
+                       outlier.colour = "steelblue4", outlier.size = 2) +
+          geom_point(data = df_input,
+                     aes(x = x, y = AUSR),
+                     colour = "#E84040", size = 5, shape = 18) +
+          labs(x = NULL, y = "AUSR score",
+               caption = paste0("Red diamond = input pathway (AUSR = ",
+                                format(round(input_ausr, 4)), ")",
+                                "  |  Blue box = random pathways (n = ", length(random_ausrs), ")")) +
+          theme_minimal(base_size = 14) +
+          theme(
+            axis.text          = element_text(size = 13),
+            axis.title         = element_text(size = 14),
+            panel.grid.major.x = element_blank(),
+            plot.caption       = element_text(size = 11, hjust = 0)
+          )
+      })
     
     })
     
@@ -1336,7 +1407,10 @@ AverageofRandom <- function(scorerandom) {
         tabPanel("Result input pathway", tags$h4("AUSR:"), textOutput("AUSRBestConfig2"), br(),
                  tags$h4("Best configuration:"), tableOutput("BestConfigs2"), br(),
                  tags$h4("Ranked configurations:"), tableOutput("ConfigTable2"), br(),
-                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions2"), br(), tags$h5("Click the download link to download list candidate genes.")),
+                 tags$h4("Top candidate genes:"), tableOutput("TopPredictions2"), br(), tags$h5("Click the download link to download list candidate genes."),
+                 tags$hr(),
+                 tags$h4("AUSR score distribution: input pathway vs random pathways"),
+                 plotOutput("AUSRboxplot2")),
         tabPanel("Batch results",
                  tags$h4("Batch analysis results (own dataset):"),
                  helpText("Run a batch analysis using the sidebar controls. One section per pathway."),
