@@ -20,7 +20,8 @@ In the data folder all pre-processed and app implemented data files can be found
 - MTB_alf.txt
 - Protonpump.txt
 - Rifampin_tolerance.txt
-The results from the K-means and SOM clustering are also found in this folder.
+- bedaqulin.txt
+The results from the K-means, SOM and ward's-linkage clustering are also found in this folder.
 
 ## MorphMtb folder
 4 scripts can be found in this folder which are crucial for the shiny app:  
@@ -67,15 +68,15 @@ You will see a button with a green arrow and "Run App". Click on this button and
 
 The web application consists out of 3 pages:
 1. **Gene centric query**  
-    You can use this page if you only want to use the implemented 6 datasets.  
+    You can use this page if you only want to use the implemented 10 datasets.  
 2. **Implement own expression data**    
-    You can use this page if you want to upload your own expression data and use this together with the 6 datasets for the analysis.  
+    You can use this page if you want to upload your own expression data and use this together with the 10 datasets for the analysis.  
 3. **About**  
     This is an informative page about the MORPH-Mtb algorithm. 
 
 
 #### Gene centric query
-ON this page queries can be performed solely on the 6 implemented daatsets. A target pathway is needed as input for the algorithm. You can input these via the text box or by uploading a text file. IMPORTANT: gene ids need to be enter separated.
+ON this page queries can be performed solely on the 6 implemented daatsets. A target pathway is needed as input for the algorithm. You can input these via the text box or by uploading a text file. IMPORTANT: gene ids need to tad delimited. You can also upload a batch file which contains multiple pathways. The members of a pathways should be tab delimited and each pathway should be separated by new lines.
 
 Further, you can choose the number of random pathways generated, having the same length as the input pathway and the number of candidate pathways to display.  
 
@@ -86,6 +87,7 @@ In the last tab, Result input pathway, the ranked candidate genes are given toge
 - The dataset and the clustering solution that gave the highest score
 - A table with the AUSR-scores from the datasets with their clustering solutions
 - A table with the ranked candidate genes. Each gene gets a score and a description from NCBI.
+- A boxplot comparing the scores of the random pathways compared to the score of the input pathway.
 
 This list of candidate genes can be downloaded in a .txt file by clicking the download link underneath the start button.  
 The application can be restarted by clicking the "New analysis" button.  
@@ -93,10 +95,10 @@ The application can be restarted by clicking the "New analysis" button.
 Because the calculations can take some time, a spinning flower is shown while the application is working.
 
 #### Implement own expression data
-THis page cna be used if yo uwant to use yourown expression data. The data should contain the sample names as column names and the genes as row names. The expression counts need to be enter separated. You can take a look at the files of the already integrated files for an example.
+THis page can be used if yo uwant to use your own expression data. The data should contain the sample names as column names and the genes as row names. The expression counts need to be tab separated. You can take a look at the files of the already integrated datasets for an example.
 
 
-The elbows of the plotted k-means clustering and SOM clustering will have to be defined. Further, you can choose the number of random pathways generated, having the same length as the input pathway and the number of candidate pathways to display.
+The elbows of the plotted k-means clustering and SOM clustering will have to be defined. Further, you can choose the number of random pathways generated, having the same length as the input pathway and the number of candidate pathways to display. As mentioned with the gene centric query batch files can also be uploaded here.
 
 After clicking the start button, the expression data will be given in a table and a processed file will automatically be written to the folder you're working in. This file will be used further down in the analysis.  
 In the next tab, Filtered expression data, the percentage of genes kept after filtering will be given, so that you can decide if you want to work further with this data.  
