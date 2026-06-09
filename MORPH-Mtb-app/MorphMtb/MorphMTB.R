@@ -701,16 +701,19 @@ AverageofRandom <- function(scorerandom) {
           incProgress(1 / n_pathways, detail = paste("Pathway", i, "of", n_pathways))
           genes_rv <- GeneID(pathwayList[[i]])
           tryCatch({
-            morph_in <- prepareMorphObjectFromFiles(genes_rv)
-            sc       <- MORPH(morph_in)
-            best     <- getMorphResultBestConfig(sc)
-            preds    <- getMorphPredictions(sc)
+            morph_in     <- prepareMorphObjectFromFiles(genes_rv)
+            sc           <- MORPH(morph_in)
+            best         <- getMorphResultBestConfig(sc)
+            preds        <- getMorphPredictions(sc)
+            # 15 random pathways of equal length for boxplot comparison
+            random_scores <- getScoresRandomPathway(g, 15, length(genes_rv))
             list(pathway = i, n_genes = length(genes_rv),
-                 scores = sc, best = best, predictions = preds, error = NULL)
+                 scores = sc, best = best, predictions = preds,
+                 random_scores = random_scores, error = NULL)
           }, error = function(e) {
             list(pathway = i, n_genes = length(genes_rv),
                  scores = NULL, best = NULL, predictions = NULL,
-                 error = conditionMessage(e))
+                 random_scores = NULL, error = conditionMessage(e))
           })
         })
       })
@@ -741,6 +744,27 @@ AverageofRandom <- function(scorerandom) {
           scores <- head(format(round(res$predictions, 6)), n)
           data.frame(No = seq_len(n), ID = ids, Score = scores)
         }, striped = TRUE)
+        output[[paste0("batchBoxplot_", i)]] <- renderPlot({
+          req(is.null(res$error), !is.null(res$random_scores))
+          random_ausrs <- as.numeric(unlist(sapply(seq_along(res$random_scores), function(j) {
+            res$random_scores[[j]][[1]][["AUSR"]]
+          })))
+          input_ausr <- res$best$AUSR
+          df_random <- data.frame(x = "AUSR scores", AUSR = random_ausrs)
+          df_input  <- data.frame(x = "AUSR scores", AUSR = input_ausr)
+          ggplot() +
+            geom_boxplot(data = df_random, aes(x = x, y = AUSR),
+                         fill = "steelblue", alpha = 0.7, width = 0.35,
+                         outlier.colour = "steelblue4", outlier.size = 2) +
+            geom_point(data = df_input, aes(x = x, y = AUSR),
+                       colour = "#E84040", size = 5, shape = 18) +
+            labs(x = NULL, y = "AUSR score",
+                 caption = paste0("Red diamond = input pathway (AUSR = ",
+                                  format(round(input_ausr, 4)), ")")) +
+            theme_minimal(base_size = 13) +
+            theme(panel.grid.major.x = element_blank(),
+                  plot.caption = element_text(size = 10, hjust = 0))
+        })
       })
 
       multiResultsData(results)
@@ -760,7 +784,8 @@ AverageofRandom <- function(scorerandom) {
             tags$h5("AUSR score:"),        textOutput(paste0("batchAUSR_",   i)),  br(),
             tags$h5("Best configuration:"), tableOutput(paste0("batchBest_",  i)),  br(),
             tags$h5("Ranked configurations:"), tableOutput(paste0("batchConfig_", i)), br(),
-            tags$h5("Top candidate genes:"),   tableOutput(paste0("batchPred_",   i))
+            tags$h5("Top candidate genes:"),   tableOutput(paste0("batchPred_",   i)), br(),
+            tags$h5("AUSR score distribution:"), plotOutput(paste0("batchBoxplot_", i))
           )
         )
       })
@@ -1309,16 +1334,19 @@ AverageofRandom <- function(scorerandom) {
           incProgress(1 / n_pathways, detail = paste("Pathway", i, "of", n_pathways))
           genes_rv <- GeneID(pathwayList[[i]])
           tryCatch({
-            morph_in <- prepareMorphObjectFromFiles2(genes_rv)
-            sc       <- MORPH(morph_in)
-            best     <- getMorphResultBestConfig(sc)
-            preds    <- getMorphPredictions(sc)
+            morph_in     <- prepareMorphObjectFromFiles2(genes_rv)
+            sc           <- MORPH(morph_in)
+            best         <- getMorphResultBestConfig(sc)
+            preds        <- getMorphPredictions(sc)
+            # 15 random pathways of equal length for boxplot comparison
+            random_scores <- getScoresRandomPathway(g, 15, length(genes_rv))
             list(pathway = i, n_genes = length(genes_rv),
-                 scores = sc, best = best, predictions = preds, error = NULL)
+                 scores = sc, best = best, predictions = preds,
+                 random_scores = random_scores, error = NULL)
           }, error = function(e) {
             list(pathway = i, n_genes = length(genes_rv),
                  scores = NULL, best = NULL, predictions = NULL,
-                 error = conditionMessage(e))
+                 random_scores = NULL, error = conditionMessage(e))
           })
         })
       })
@@ -1349,6 +1377,27 @@ AverageofRandom <- function(scorerandom) {
           scores <- head(format(round(res$predictions, 6)), n)
           data.frame(No = seq_len(n), ID = ids, Score = scores)
         }, striped = TRUE)
+        output[[paste0("batchBoxplot2_", i)]] <- renderPlot({
+          req(is.null(res$error), !is.null(res$random_scores))
+          random_ausrs <- as.numeric(unlist(sapply(seq_along(res$random_scores), function(j) {
+            res$random_scores[[j]][[1]][["AUSR"]]
+          })))
+          input_ausr <- res$best$AUSR
+          df_random <- data.frame(x = "AUSR scores", AUSR = random_ausrs)
+          df_input  <- data.frame(x = "AUSR scores", AUSR = input_ausr)
+          ggplot() +
+            geom_boxplot(data = df_random, aes(x = x, y = AUSR),
+                         fill = "steelblue", alpha = 0.7, width = 0.35,
+                         outlier.colour = "steelblue4", outlier.size = 2) +
+            geom_point(data = df_input, aes(x = x, y = AUSR),
+                       colour = "#E84040", size = 5, shape = 18) +
+            labs(x = NULL, y = "AUSR score",
+                 caption = paste0("Red diamond = input pathway (AUSR = ",
+                                  format(round(input_ausr, 4)), ")")) +
+            theme_minimal(base_size = 13) +
+            theme(panel.grid.major.x = element_blank(),
+                  plot.caption = element_text(size = 10, hjust = 0))
+        })
       })
 
       multiResultsData2(results2)
@@ -1368,7 +1417,8 @@ AverageofRandom <- function(scorerandom) {
             tags$h5("AUSR score:"),             textOutput(paste0("batchAUSR2_",   i)), br(),
             tags$h5("Best configuration:"),     tableOutput(paste0("batchBest2_",  i)), br(),
             tags$h5("Ranked configurations:"),  tableOutput(paste0("batchConfig2_", i)), br(),
-            tags$h5("Top candidate genes:"),    tableOutput(paste0("batchPred2_",   i))
+            tags$h5("Top candidate genes:"),    tableOutput(paste0("batchPred2_",   i)), br(),
+            tags$h5("AUSR score distribution:"), plotOutput(paste0("batchBoxplot2_", i))
           )
         )
       })

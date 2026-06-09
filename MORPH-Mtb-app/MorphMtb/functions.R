@@ -246,7 +246,7 @@ prepareMorphObjectFromFiles2 <- function(InputGOI = NULL, ...) {
                            "bedaqulin.txt","bedaqulin.txt","bedaqulin.txt"),
                       V2=c("kmeansmethylation.txt","sommethylation.txt","wardmethylation.txt","kmeansdrug.txt","somdrug.txt","warddrug.txt","kmeansESX.txt","somESX.txt","wardESX.txt",
                            "kmeansMTBc_lineages.txt","somMTBc_lineages.txt","wardMTBc_lineages.txt","kmeansprimary.txt","somprimary.txt","wardprimary.txt","kmeanstimecourse.txt",
-                           "somtimecourse.txt","wardtimecourse.txt","kmeansexpdata.txt", "somexpdata.txt", "wardexpdata.txt","kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt",
+                           "somtimecourse.txt","wardtimecourse.txt","kmeansexpdata.txt", "somexpdata.txt", "hclustexpdata.txt","kmeansProtonPump.txt","somProtonPump.txt","wardProtonPump.txt","kmeansRifampin_tolerance.txt","somRifampin_tolerance.txt","wardRifampin_tolerance.txt",
                            "kmeansMTB_alf.txt","somMTB_alf.txt","wardMTB_alf.txt","kmeansbedaqulin.txt","sombedaqulin.txt","wardbedaqulin.txt"))
   List_GE = as.character(Config[,1]) #Reads the first column (containing paths to gene-expression data files)
   List_C = as.character(Config[,2]) #Reads the second column (containing paths to clustering solution files)
